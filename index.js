@@ -38,12 +38,10 @@ app.set('views', path.join(__dirname, 'view'));
 
 app.use('/url', urlRoutes);
 
-// Multer config for file uploads
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+const uploadDir = "/tmp";
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) { cb(null, uploadDir); },
+    destination: function (req, file, cb) { cb(null, "/tmp"); },
     filename: function (req, file, cb) { cb(null, Date.now() + '-' + file.originalname); }
 });
 const upload = multer({ storage: storage, limits: { fileSize: 50 * 1024 * 1024 } });
