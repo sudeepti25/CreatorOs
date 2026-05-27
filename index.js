@@ -61,6 +61,7 @@ const urlShortenerLimiter = rateLimit({
 app.use("/", authRoutes);
 
 const protect = require("./middleware/auth");
+const { preventContributorWrites } = require("./middleware/auth");
 
 const fs = require('fs');
 app.use(express.static(path.join(__dirname, 'public')));
@@ -77,7 +78,7 @@ const suggestionRoutes = require('./routes/suggestionRoutes');
 // ... after your other app.use() lines:
 app.use('/suggestions', protect, suggestionRoutes);
 app.use('/services/creator-crm', protect, collaborationRoutes);
-app.post('/dashboard/accept-invite', protect, acceptInviteFromDashboard);
+app.post('/dashboard/accept-invite', protect, preventContributorWrites, acceptInviteFromDashboard);
 app.get('/invites/accept/:token', acceptInvite);
 const Url = require('./model/url');
 
@@ -199,7 +200,7 @@ app.get('/services/:serviceKey', protect, (req, res) => {
 });
 
 // URL shortener submit flow (dedicated service route)
-app.post('/services/url-shortener/shorten', protect, urlShortenerLimiter, async (req, res) => {
+app.post('/services/url-shortener/shorten', protect, preventContributorWrites, urlShortenerLimiter, async (req, res) => {
     const { redirectUrl } = req.body;
     if (!redirectUrl) {
         return res.render('home', buildShortenerViewModel(req, null, 'Please enter a URL.'));
@@ -222,7 +223,7 @@ app.post('/services/url-shortener/shorten', protect, urlShortenerLimiter, async 
 });
 
 // File upload endpoint
-app.post('/services/file-upload/upload', protect, uploadLimiter, upload.single('file'), (req, res) => {
+app.post('/services/file-upload/upload', protect, preventContributorWrites, uploadLimiter, upload.single('file'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }

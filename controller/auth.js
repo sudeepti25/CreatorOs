@@ -21,11 +21,20 @@ function isGoogleAuthConfigured() {
     );
 }
 
-function createToken(userId) {
+function serializeUser(user) {
+    return {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role || "creator",
+    };
+}
+
+function createToken(user) {
+    const tokenUser = serializeUser(user);
+
     return jwt.sign(
-        {
-            id: userId,
-        },
+        tokenUser,
         process.env.JWT_SECRET,
         {
             expiresIn: "7d",
@@ -106,11 +115,11 @@ const login = async (req, res, next) => {
         user.lastLoginAt = new Date();
         await user.save();
 
-        const token = createToken(user._id);
+        const token = createToken(user);
         setAuthCookie(res, token);
 
         if (wantsHtml(req)) return res.redirect("/dashboard");
-        return res.status(200).json({ success: true, message: "Authenticated" });
+        return res.status(200).json({ success: true, token, user: serializeUser(user) });
     } catch (error) {
         return next(error);
     }
@@ -122,7 +131,7 @@ const handleGoogleCallback = async (req, res) => {
             return redirectWithLoginError(res, "Google sign-in was cancelled or could not be completed.");
         }
 
-        const token = createToken(req.user._id);
+        const token = createToken(req.user);
         setAuthCookie(res, token);
 
         return res.redirect("/dashboard?login=google");
@@ -145,17 +154,24 @@ const loginAsContributor = async (req, res, next) => {
                 email: CONTRIBUTOR_EMAIL,
                 password: hashedPassword,
                 authProvider: "local",
+                role: "contributor",
             });
+        } else if (user.role !== "contributor") {
+            user.role = "contributor";
         }
 
         user.lastLoginAt = new Date();
         await user.save();
 
-        const token = createToken(user._id);
+        const token = createToken(user);
         setAuthCookie(res, token);
 
         if (wantsHtml(req)) return res.redirect("/dashboard");
-        return res.status(200).json({ success: true, message: "Authenticated as contributor" });
+        return res.status(200).json({
+            success: true,
+            token,
+            user: serializeUser(user),
+        });
     } catch (error) {
         return next(error);
     }

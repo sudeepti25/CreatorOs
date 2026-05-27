@@ -85,6 +85,7 @@ router.get("/login", (req, res) => {
 router.post("/signup", signupValidator, signup);
 router.post("/login", loginValidator, login);
 router.post("/login/contributor", loginAsContributor);
+router.post("/api/auth/contributor-login", loginAsContributor);
 
 router.get("/auth/google", (req, res, next) => {
     if (!googleAuthConfigured) {
