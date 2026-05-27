@@ -65,19 +65,9 @@ const MockInviteModel = {
   find: () => emptyInviteQuery,
 };
 
-module.exports = new Proxy({}, {
-  get(target, prop) {
-    if (process.env.USE_MOCK_DB === "true") {
-      return MockInviteModel[prop] || MockInviteModel;
-    }
+const InviteModel =
+  process.env.USE_MOCK_DB === "true"
+    ? MockInviteModel
+    : MongooseInviteModel;
 
-    return MongooseInviteModel[prop];
-  },
-  construct(target, args) {
-    if (process.env.USE_MOCK_DB === "true") {
-      return new MockInviteModel(...args);
-    }
-
-    return new MongooseInviteModel(...args);
-  },
-});
+module.exports = InviteModel;
