@@ -205,8 +205,14 @@ DATABASE_URL=your_database_connection_url
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database_name
 
 # -------------------------------------------------------
+# Instagram Public Profile Fetching
+INSTAGRAM_PUBLIC_PROVIDER=public_html
+INSTAGRAM_PYTHON_PATH=python
+INSTAGRAM_LOOKUP_COOLDOWN_SECONDS=30
+
+# -------------------------------------------------------
 # Instagram Graph API
-# developers.facebook.com → My Apps → Instagram Graph API
+# developers.facebook.com -> My Apps -> Instagram Graph API
 
 INSTAGRAM_APP_ID=your_instagram_app_id
 INSTAGRAM_APP_SECRET=your_instagram_app_secret
@@ -291,6 +297,29 @@ DEBUG=false
 ```bash id="z2g5lm"
 cp .env.example .env.local
 ```
+
+### Instagram Profile Fetching
+
+The Creator Analytics dashboard fetches public Instagram profile metadata via a provider-based service. It does **not** collect passwords, does **not** use session cookies, and does **not** access private profiles. Private accounts return `PRIVATE_PROFILE_UNSUPPORTED`.
+
+Supported providers:
+
+- `public_html` (default): pulls public profile metadata from Instagram's public profile page.
+- `python_public`: uses a small Python adapter for the same public-only metadata.
+
+Required setup:
+
+1. Set `INSTAGRAM_PUBLIC_PROVIDER` in `.env.local`.
+2. If using `python_public`, ensure Python 3 is installed and set `INSTAGRAM_PYTHON_PATH` if needed.
+3. Optionally adjust `INSTAGRAM_LOOKUP_COOLDOWN_SECONDS` for per-user cooldown.
+
+The profile lookup endpoint is protected and available at:
+
+```http
+GET /api/instagram/profile?username=<instagram_username>
+```
+
+It returns a normalized profile response with username, name, profile image, bio, followers, following, total posts, source, and fetch timestamp. Public lookup availability depends on Instagram's public profile page being accessible.
 
 ### Run Locally
 
