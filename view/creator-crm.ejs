@@ -4,193 +4,906 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <title>Creator CRM | CreatorOS</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #06101f;
-      --surface: rgba(13, 24, 49, 0.88);
-      --border: rgba(148, 163, 184, 0.16);
-      --text: #f8fafc;
-      --muted: #cbd5e1;
-      --accent: #22d3ee;
-      --accent-strong: #38bdf8;
-      --success: #22c55e;
-      --danger: #f87171;
-      --shadow: 0 24px 50px rgba(0, 0, 0, 0.26);
-      --sidebar-width: 280px;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+   :root {
+  --sidebar-bg: #f0ebe3;
+  --main-bg: #F5F1EA;
+    --bg: #EFE8DC;      /* add this */
+  --white: #ffffff;
+    /* change to black for retro borders */
+  --text: #1a1a1a;
+  --muted: #888;
+  --accent: #00c6b8;
+  --accent-dark: #00b0a3;
+  --sidebar-width: 260px;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--text);
+  background-color: var(--main-bg);   /* was var(--bg) — undefined */
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── LAYOUT ─── */
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) 1fr;
+      min-height: 100vh;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      border: 2px solid #1a1a1a; 
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+      gap: 0.25rem;
+    }
+
+    .brand {
+      margin-bottom: 1.5rem;
+      padding: 0 0.25rem;
+    }
+    .brand h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #111;
+    }
+    .brand .beta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .nav-item {
+       display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.5rem 1rem;
+ 
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #111111;
+  cursor: pointer;
+  transition: background 0.15s;
+    }
+    /* .nav-item:hover { background: rgba(254, 13, 13, 0.05);}*/
+    .nav-item:hover { transform: translate(-2px, -2px);       /* lifts on hover */
+  box-shadow: 5px 5px 0px #1a1a1a;  }
+    .nav-item.active {
+      background: var(--accent);
+  transform: translate(2px, 2px);
+  border:2px solid #1a1a1a   ;      /* presses down on click */
+ box-shadow: 3px 3px 0px #1a1a1a;   
+  /* remove the transform if you had translateX */
+}
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .sidebar-spacer { flex: 1; }
+
+    .upgrade-btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 3px 3px 0px #1a1a1a;
+      border: 2px solid #1a1a1a;
+      
+      font-family: 'Space Grotesk', sans-serif;;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      margin-bottom: 0.75rem;
+      transition: background 0.15s;
+    }
+    .upgrade-btn:hover { background: var(--accent-dark); }
+
+    .sidebar-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    .sidebar-footer .nav-item { font-size: 0.82rem; color: #777; }
+
+    /* ─── MAIN ─── */
+    .main {
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
-      font-family: 'Poppins', sans-serif;
-      background:
-        radial-gradient(900px 320px at 20% -80px, rgba(34, 211, 238, 0.16), transparent 70%),
-        radial-gradient(900px 320px at 80% 0%, rgba(59, 130, 246, 0.14), transparent 70%),
-        linear-gradient(180deg, #0b1220, #06101f);
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 1.5rem;
+      border: 2px solid #1a1a1a; 
+      box-shadow: 3px 3px 0px #1a1a1a;
+      background: var(--main-bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-wrap {
+       border: 2px solid #1a1a1a; 
+        box-shadow: 3px 3px 0px #1a1a1a;   
+           transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      flex: 1;
+      max-width: 280px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: #aaa;
+    }
+    .search-input {
+      width: 100%;
+      padding: 0.55rem 0.75rem 0.55rem 2.2rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--white);
+      font-family: 'Space Grotesk', sans-serif;;
+      font-size: 0.875rem;
       color: var(--text);
-      overflow-x: hidden;
+      outline: none;
     }
-    a { color: inherit; text-decoration: none; }
-    .dashboard-layout { display: grid; grid-template-columns: var(--sidebar-width) minmax(0,1fr); min-height: 100vh; }
-    .sidebar { padding: 2rem 1.2rem; border-right: 1px solid var(--border); background: rgba(6, 16, 31, 0.92); display: flex; flex-direction: column; gap: 1.3rem; }
-    .brand { display: flex; align-items: center; gap: 0.85rem; font-size: 1.3rem; font-weight: 800; }
-    .brand-mark { width: 2.5rem; height: 2.5rem; border-radius: 1rem; display: grid; place-items: center; background: linear-gradient(135deg, #67e8f9, #22d3ee); color: #042f3e; font-weight: 800; }
-    .nav-group { display: grid; gap: 0.65rem; }
-    .nav-link { display: block; padding: 0.95rem 1rem; border-radius: 0.85rem; color: var(--muted); font-weight: 600; transition: background 0.2s ease, transform 0.2s ease; }
-    .nav-link:hover, .nav-link.active { background: rgba(34, 211, 238, 0.12); color: #fff; transform: translateX(4px); }
-    .sidebar-label { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
-    .main { padding: 1.8rem 2rem; }
-    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 2rem; }
-    .topbar h1 { font-size: clamp(2rem, 2.6vw, 2.6rem); margin-bottom: 0.4rem; }
-    .topbar p { color: var(--muted); max-width: 760px; }
-    .profile-chip { display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 999px; background: rgba(255,255,255,0.05); }
-    .avatar { width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border-radius: 999px; background: linear-gradient(135deg, #67e8f9, #22d3ee); color: #042f3e; font-weight: 800; }
-    .cards-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(12, minmax(0,1fr)); }
-    .panel { grid-column: span 8; background: var(--surface); border: 1px solid var(--border); border-radius: 1.4rem; box-shadow: var(--shadow); padding: 1.75rem; }
-    .stats-panel { grid-column: span 4; display: grid; gap: 1rem; }
-    .panel-head { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
-    .panel-head h2 { margin: 0; font-size: 1.25rem; }
-    .badge { display: inline-flex; align-items: center; padding: 0.55rem 0.95rem; border-radius: 999px; background: rgba(34, 211, 238, 0.14); color: #67e8f9; font-weight: 700; font-size: 0.86rem; }
-    .form-row { display: grid; gap: 1rem; margin-bottom: 1.25rem; }
-    .input, .textarea { width: 100%; border: 1px solid var(--border); border-radius: 1rem; background: rgba(255,255,255,0.04); color: var(--text); padding: 1rem 1.1rem; font: inherit; }
-    .textarea { min-height: 150px; resize: vertical; }
-    .primary-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem; padding: 0.95rem 1.35rem; border-radius: 999px; border: none; color: #042f3e; background: linear-gradient(135deg, #67e8f9, #22d3ee); font-weight: 700; cursor: pointer; }
-    .info-box, .alert-box { margin-bottom: 1.5rem; padding: 1rem 1.2rem; border-radius: 1rem; border: 1px solid transparent; }
-    .info-box { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.18); color: #dbeafe; }
-    .alert-box { background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.24); color: #fee2e2; }
-    .success-box { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.24); color: #d1fae5; }
-    .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { padding: 0.95rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .table th { color: var(--muted); text-align: left; font-size: 0.92rem; }
-    .status-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; }
-    .status-pending { background: rgba(59, 130, 246, 0.14); color: #bae6fd; }
-    .status-accepted { background: rgba(34, 197, 94, 0.14); color: #dcfce7; }
-    .status-expired { background: rgba(248, 113, 113, 0.14); color: #fecaca; }
-    @media (max-width: 980px) {
-      .dashboard-layout { grid-template-columns: 1fr; }
-      .panel { grid-column: span 12; }
-      .stats-panel { grid-column: span 12; }
+    .search-input::placeholder { color: #aaa; }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-left: auto;
     }
+
+    .new-project-btn {
+       border: 2px solid #1a1a1a;
+         box-shadow: 3px 3px 0px #1a1a1a;     /* retro shadow */  
+        transition: transform 0.2s ease,
+         box-shadow 0.2s ease;
+      padding: 0.55rem 1.1rem;
+      background: var(--accent);
+      color: #fff;
+      
+      font-family: 'Space Grotesk', sans-serif;;
+      font-size: 0.875rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .new-project-btn:hover { background: var(--accent-dark); }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.3rem;
+      color: #777;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.4rem;
+      transition: background 0.15s;
+    }
+    .icon-btn:hover { background: rgba(0,0,0,0.06); }
+    .icon-btn svg { width: 18px; height: 18px; }
+
+    /* ─── CONTENT ─── */
+    .content { flex: 1; display: flex; flex-direction: column;
+    
+    gap:1rem;
+    padding:1rem; 
+   }
+
+    /* ─── PIPELINE ─── */
+    .pipeline {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding: 1 rem;
+      min-height: 480px;
+    }
+
+    .pipeline-col {
+       
+      display: flex;
+      flex-direction: column;
+
+    }
+    .pipeline-col:last-child { border-right: none; }
+
+    .col-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.15rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--main-bg);
+      border: 3px solid #1a1a1a; 
+       box-shadow: 3px 3px 0px #1a1a1a; 
+       gap :1rem;
+       padding:1 rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .col-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #333;
+    }
+    .col-header-action {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.15rem;
+    }
+    .col-header-action svg { width: 16px; height: 16px; }
+
+    .col-body {
+      flex: 1;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: var(--main-bg);
+    }
+
+    /* ─── DEAL CARD ─── */
+    .deal-card {
+      border: 2px solid #1a1a1a;           /* hard black border */
+  border-radius: 0;                    /* flat, no rounding */
+  padding: 1rem;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 3px 3px 0px #1a1a1a;     /* retro shadow */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .deal-card:hover {  transform: translate(-2px, -2px) scale(1.02);
+  border: 2px solid #f5c842;
+  background: #fffdf0;
+  box-shadow: 3px 3px 0px #f5c842;    }
+
+    /* hide by default */
+
+/* show on card hover */
+.deal-card:hover .deal-status-row {
+  display: flex;
+}
+    .deal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    .category-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      border:2px solid #1a1a1a;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .tag-tech    { background: #dbeafe; color: #1d4ed8; }
+    .tag-fintech { background: #dcfce7; color: #15803d; }
+    .tag-gaming  { background: #fef9c3; color: #92400e; }
+    .tag-lifestyle { background: #f3e8ff; color: #7c3aed; }
+
+    .deal-amount {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #222;
+    }
+
+    .deal-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 0.2rem;
+    }
+    .deal-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .deal-status-row {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+    .deal-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #444;
+      background: var(--white);
+    }
+    .deal-status-tag .check {
+      width: 14px; height: 14px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .deal-status-tag .check svg { width: 9px; height: 9px; color: #fff; }
+
+    .emailed-badge {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+    }
+
+    .deal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .contact-avatar {
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a5f3fc, #22d3ee);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #042f3e;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .contact-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .contact-name { font-size: 0.78rem; color: #555; font-weight: 500; }
+
+    .deal-icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+    }
+    .deal-icon-btn svg { width: 14px; height: 14px; }
+
+    /* ─── BOTTOM STRIP ─── */
+    .bottom-strip {
+       border: 2px solid #1a1a1a;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ─── RECENT CONTACTS TABLE ─── */
+   .contacts-panel {
+  border-right: 1px solid #e2ddd6;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 2px solid #1a1a1a;
+  background: var(--main-bg);
+}
+
+.panel-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #111;
+}
+
+.view-all-link {
+  font-size: 0.78rem;
+  color: #333;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+}
+
+.contacts-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;        /* remove the black border you added */
+}
+
+.contacts-table th {
+  text-align: left;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #aaa;
+  border-bottom: 1px solid #91908f;
+  background: var(--main-bg);
+}
+
+.contacts-table td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #91908f;
+  color: #333;
+}
+
+.contacts-table tr:last-child td { border-bottom: none; }
+
+.contacts-table tbody tr:hover { background: rgba(0,0,0,0.02); }
+
+.contact-company {
+  font-weight: 700;
+  color: #111;
+}
+
+/* rounded pill chips like reference */
+.status-chip {
+  display: inline-flex;
+  padding: 0.25rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.chip-partner     { background: #e6faf8; color: #00857a; border-color: #b2ece7; }
+.chip-negotiating { background: #fef9e7; color: #a16207; border-color: #fde68a; }
+.chip-active      { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+
+    .action-icon { color: #aaa; cursor: pointer; }
+    .action-icon svg { width: 16px; height: 16px; }
+
+    /* ─── INVOICED PANEL ─── */
+    /* ─── INVOICED PANEL ─── */
+.invoiced-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.invoiced-header {
+  padding: 1.25rem 1.5rem;
+  background: var(--accent);
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.invoiced-header .panel-title {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.invoiced-body {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.invoiced-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.invoiced-amount .big-num {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: -0.04em;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.pending-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.invoice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.invoice-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border: 2px solid #1a1a1a;       /* hard black border */
+  border-radius: 0;                 /* flat retro */
+  background: var(--white);
+  box-shadow: 2px 2px 0px #1a1a1a; /* retro shadow */
+}
+
+.invoice-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 0.2rem;
+}
+
+.invoice-due {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.overdue { color: #ef4444; }
+.due-in  { color: var(--muted); }
+
+.invoice-amount {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #111;
+}
+
+.add-invoice-btn {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 0;                 /* flat retro square */
+  background: var(--accent);
+  color: #fff;
+  border: 2px solid #1a1a1a;
+  box-shadow: 3px 3px 0px #1a1a1a;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 1rem;
+  margin-left: auto;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-invoice-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px #1a1a1a;
+}
   </style>
 </head>
 <body>
-  <div class="dashboard-layout">
-    <aside class="sidebar">
-      <a href="/" class="brand">
-        <span class="brand-mark">CO</span>
-        CreatorOS
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>CreatorOS</h1>
+      
+    </div>
+
+    <a href="/dashboard" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="/links" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      My Links
+    </a>
+    <a href="/analytics" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Analytics
+    </a>
+    <a href="/services/creator-crm" class="nav-item active">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      CRM
+    </a>
+    <a href="/settings" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </a>
+
+    <div class="sidebar-spacer"></div>
+
+    <button class="upgrade-btn">Upgrade Plan</button>
+
+    <div class="sidebar-footer">
+      <a href="/support" class="nav-item">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Support
       </a>
-      <div class="nav-group">
-        <div class="sidebar-label">Services</div>
-        <a class="nav-link" href="/services/creator-crm">Creator CRM</a>
-        <a class="nav-link" href="/services/url-shortener">URL Shortener</a>
-        <a class="nav-link" href="/services/suggestion-tool">Caption Tool</a>
+      <a href="/logout" class="nav-item">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" type="text" placeholder="Search brands..." />
       </div>
-      <div class="nav-group">
-        <div class="sidebar-label">Account</div>
-        <a class="nav-link" href="/dashboard">Dashboard</a>
-        <a class="nav-link" href="/profile">Profile</a>
+      <div class="topbar-actions">
+        <button class="new-project-btn">New Project</button>
+        <button class="icon-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="icon-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
       </div>
-    </aside>
+    </div>
 
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <h1>Creator CRM</h1>
-          <p>Invite collaborators to join your CreatorOS workspace and track pending invitations.</p>
-        </div>
-        <div class="profile-chip">
-          <span class="avatar"><%= user.initials %></span>
-          <span><%= user.name %></span>
-        </div>
-      </header>
+    <!-- CONTENT -->
+    <div class="content">
 
-      <% if (success) { %>
-        <div class="success-box"><%= success %></div>
-      <% } %>
-      <% if (error) { %>
-        <div class="alert-box"><%= error %></div>
-      <% } %>
+      <!-- PIPELINE -->
+      <div class="pipeline">
 
-      <div class="cards-grid">
-        <section class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Send a collaborator invite</h2>
-              <p>Enter the email and a short note to invite someone to your CreatorOS workspace.</p>
-            </div>
-            <span class="badge">Invite feature</span>
+        <!-- LEADS -->
+        <div class="pipeline-col">
+          <div class="col-header">
+            <span class="col-title">Leads (4)</span>
+            <button class="col-header-action">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
           </div>
-          <form action="/services/creator-crm/invite" method="POST">
-            <div class="form-row">
-              <label for="crm-email" class="sr-only">Collaborator Email</label>
-              <input id="crm-email" class="input" type="email" name="email" placeholder="Collaborator email" required />
-              <label for="crm-project" class="sr-only">Project Name</label>
-              <input id="crm-project" class="input" type="text" name="projectName" placeholder="Project or workspace name (optional)" />
+          <div class="col-body">
+            <!-- Card 1 -->
+            <div class="deal-card">
+              <div class="deal-top">
+                <span class="category-tag tag-tech">TECH</span>
+                <span class="deal-amount">$5,000</span>
+              </div>
+              <div class="deal-name">Adobe Creative Cloud</div>
+              <div class="deal-sub">Summer Campaign Intro</div>
+              <div class="deal-footer">
+                <div class="contact-row">
+                  <div class="contact-avatar">SK</div>
+                  <span class="contact-name">Sarah Miller</span>
+                </div>
+              </div>
             </div>
-            <div class="form-row">
-              <textarea class="textarea" name="message" placeholder="Personal message (optional)"></textarea>
-            </div>
-            <button class="primary-btn" type="submit">Send Invite</button>
-          </form>
-        </section>
 
-        <section class="stats-panel">
-          <div class="panel">
-            <div class="panel-head">
-              <h2>Pending invites</h2>
+            <!-- Card 2 -->
+            <div class="deal-card">
+              <div class="deal-top">
+                <span class="category-tag tag-gaming">GAMING</span>
+                <span class="deal-amount">$2,200</span>
+              </div>
+              <div class="deal-name">Razer Global</div>
+              <div class="deal-sub">BlackShark V2 Pro Review</div>
+              <div class="deal-footer">
+                <div class="contact-row">
+                  <div class="contact-avatar" style="background: linear-gradient(135deg,#1e1e1e,#444); color:#fff;">JC</div>
+                  <span class="contact-name">James Chen</span>
+                </div>
+              </div>
             </div>
-            <p>Keep track of open collaborator invitations and resend if needed.</p>
           </div>
-          <div class="panel">
-            <div class="panel-head">
-              <h2>Recent activity</h2>
-            </div>
-            <p>Invitation state updates automatically after acceptance.</p>
-          </div>
-        </section>
-      </div>
-
-      <section class="panel" style="margin-top: 1.5rem;">
-        <div class="panel-head">
-          <h2>Invitation history</h2>
-          <span class="badge"><%= invites.length %> recent</span>
         </div>
-        <% if (invites.length === 0) { %>
-          <div class="info-box">No invitations have been sent yet. Use the form above to invite collaborators.</div>
-        <% } else { %>
-          <div style="overflow-x:auto;">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Project</th>
-                  <th>Status</th>
-                  <th>Sent</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% invites.forEach(function(invite) { %>
+
+        <!-- OUTREACH -->
+        <div class="pipeline-col">
+          <div class="col-header">
+            <span class="col-title">Outreach (2)</span>
+            <button class="col-header-action">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          <div class="col-body">
+            <!-- Card 3 -->
+            <div class="deal-card" style="position:relative;">
+              <span class="emailed-badge">Emailed</span>
+              <div class="deal-top">
+                <span class="category-tag tag-fintech">FINTECH</span>
+                <span class="deal-amount" style="visibility:hidden;">$0</span>
+              </div>
+              <div class="deal-name">Revolut Business</div>
+              <div class="deal-sub">Tax Season Partnership</div>
+              <div class="deal-footer">
+                <div class="contact-row">
+                  <div class="contact-avatar" style="background: linear-gradient(135deg,#6ee7b7,#059669); color:#fff;">ER</div>
+                  <span class="contact-name">Elena Ross</span>
+                </div>
+                <button class="deal-icon-btn">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEGOTIATION -->
+        <div class="pipeline-col">
+          <div class="col-header">
+            <span class="col-title">Negotiation (1)</span>
+          </div>
+          <div class="col-body">
+            <!-- Card 4 - highlighted -->
+            <div class="deal-card">
+              <div class="deal-top">
+                <span class="category-tag tag-lifestyle">LIFESTYLE</span>
+                <span class="deal-amount">$8,500</span>
+              </div>
+              <div class="deal-name">Nespresso</div>
+              <div class="deal-sub">Vertuo Pop Showcase · 3 Reels</div>
+              <div class="deal-status-row">
+                <div class="deal-status-tag">
+                  <span class="check">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  Counter-offer sent
+                </div>
+              </div>
+              <div class="deal-footer">
+                <div class="contact-row">
+                  <div class="contact-avatar" style="background: linear-gradient(135deg,#c4b5fd,#7c3aed); color:#fff;">MT</div>
+                  <span class="contact-name">Marcus Thorne</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /pipeline -->
+
+      <!-- BOTTOM STRIP -->
+      <div class="bottom-strip">
+
+        <!-- RECENT BRAND CONTACTS -->
+        <div class="contacts-panel">
+          <div class="panel-header">
+            <span class="panel-title">Recent Brand Contacts</span>
+            <a href="/services/creator-crm/all" class="view-all-link">View All CRM</a>
+          </div>
+          <table class="contacts-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Primary Contact</th>
+                <th>Last Activity</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (typeof contacts !== 'undefined' && contacts.length > 0) { %>
+                <% contacts.forEach(function(c) { %>
                   <tr>
-                    <td><%= invite.email %></td>
-                    <td><%= invite.projectName %></td>
-                    <td>
-                      <span class="status-pill status-<%= invite.status %>"><%= invite.status %></span>
-                    </td>
-                    <td><%= new Date(invite.createdAt).toLocaleString() %></td>
+                    <td class="contact-company"><%= c.company %></td>
+                    <td><%= c.contact %></td>
+                    <td><%= c.lastActivity %></td>
+                    <td><span class="status-chip chip-<%= c.statusClass %>"><%= c.status %></span></td>
+                    <td><span class="action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span></td>
                   </tr>
                 <% }) %>
-              </tbody>
-            </table>
+              <% } else { %>
+                <tr>
+                  <td class="contact-company">SquareSpace</td>
+                  <td>David Hoffman</td>
+                  <td>2 days ago</td>
+                  <td><span class="status-chip chip-partner">Partner</span></td>
+                  <td><span class="action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td class="contact-company">HelloFresh</td>
+                  <td>Clara Vance</td>
+                  <td>Yesterday</td>
+                  <td><span class="status-chip chip-negotiating">Negotiating</span></td>
+                  <td><span class="action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td class="contact-company">MasterClass</td>
+                  <td>Benny G.</td>
+                  <td>14h ago</td>
+                  <td><span class="status-chip chip-active">Active</span></td>
+                  <td><span class="action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span></td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- INVOICED & UNPAID -->
+        <div class="invoiced-panel">
+          <div class="invoiced-header">
+            <span class="panel-title">Invoiced &amp; Unpaid</span>
           </div>
-        <% } %>
-      </section>
-    </main>
-  </div>
+          <div class="invoiced-body">
+            <div class="invoiced-amount">
+              <span class="big-num">$<%= typeof totalUnpaid !== 'undefined' ? totalUnpaid.toLocaleString() : '32,450' %></span>
+              <span class="pending-label">Pending</span>
+            </div>
+            <div class="invoice-list">
+              <% if (typeof invoices !== 'undefined' && invoices.length > 0) { %>
+                <% invoices.forEach(function(inv) { %>
+                  <div class="invoice-item">
+                    <div class="invoice-info">
+                      <div class="invoice-name"><%= inv.name %></div>
+                      <div class="invoice-due <%= inv.overdue ? 'overdue' : 'due-in' %>">
+                        <%= inv.overdue ? 'OVERDUE ' + inv.dueLabel : 'DUE IN ' + inv.dueLabel %>
+                      </div>
+                    </div>
+                    <div class="invoice-amount">$<%= inv.amount.toLocaleString() %></div>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <div class="invoice-item">
+                  <div class="invoice-info">
+                    <div class="invoice-name">Skillshare · Annual</div>
+                    <div class="invoice-due overdue">OVERDUE 4D</div>
+                  </div>
+                  <div class="invoice-amount">$12,000</div>
+                </div>
+                <div class="invoice-item">
+                  <div class="invoice-info">
+                    <div class="invoice-name">NordVPN · Mar</div>
+                    <div class="invoice-due due-in">DUE IN 12D</div>
+                  </div>
+                  <div class="invoice-amount"></div>
+                </div>
+              <% } %>
+            </div>
+            <button class="add-invoice-btn">+</button>
+          </div>
+        </div>
+
+      </div><!-- /bottom-strip -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+</div><!-- /layout -->
 </body>
 </html>
