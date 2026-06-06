@@ -586,6 +586,9 @@
             letter-spacing: 0.05em;
             margin-bottom: 0.5rem;
         }
+        .stat-card:nth-child(2) { animation-delay: 0.05s; }
+        .stat-card:nth-child(3) { animation-delay: 0.1s; }
+        .stat-card:nth-child(4) { animation-delay: 0.15s; }
 
         .stat-card-retro .value {
             font-size: 2.3rem;
@@ -607,6 +610,10 @@
         .trend {
             color: var(--success);
             font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            background-color: var(--accent-teal);
+            color: #111111;
+            box-shadow: 1.5px 1.5px 0px var(--border);
         }
 
         /* Panels & Cards */
@@ -644,6 +651,10 @@
             color: #111111;
             box-shadow: 1.5px 1.5px 0px var(--border);
         }
+        .stat-icon.purple  { color: #67e8f9; background: rgba(34, 211, 238, 0.12); }
+        .stat-icon.blue    { color: #38bdf8; background: rgba(56, 189, 248, 0.12); }
+        .stat-icon.green   { color: #86efac; background: rgba(34, 197, 94, 0.12); }
+        .stat-icon.orange  { color: #fcd34d; background: rgba(245, 158, 11, 0.14); }
 
         /* ── Invite Status ── */
         .status-grid-retro {
@@ -669,6 +680,7 @@
             color: #222222;
             letter-spacing: 0.05em;
         }
+        .panel { padding: 1.35rem; animation: enterUp 0.62s ease 0.18s both; }
 
         .status-card-retro p {
             font-size: 1.6rem;
@@ -689,6 +701,7 @@
         .status-card-retro.pending {
             background-color: var(--accent-yellow);
         }
+        .panel h2 { margin: 0; font-size: 1.25rem; letter-spacing: 0; }
 
         .status-card-retro.accepted {
             background-color: var(--success);
@@ -855,6 +868,7 @@
             border-radius: 50%;
             border: 1px solid var(--border);
         }
+        .chart-wrap { min-height: 280px; overflow: hidden; }
 
         /* SVG Line Chart Redesign */
         .chart-wrap {
@@ -893,6 +907,8 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+        .chart-dot   { fill: var(--purple-2); stroke: #06101f; stroke-width: 3; }
+        .chart-label, .chart-y { fill: var(--muted-2); font-size: 13px; font-family: 'Poppins', sans-serif; }
 
         .chart-dot {
             fill: var(--accent-teal);
@@ -1012,6 +1028,25 @@
             letter-spacing: 0.05em;
             color: var(--text);
         }
+        .table-head h2 { margin: 0; font-size: 1.25rem; }
+        .table-head a  { color: var(--purple); text-decoration: none; font-weight: 700; }
+
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; min-width: 900px; border-collapse: collapse; }
+
+        th, td {
+            padding: 1.1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+            font-size: 0.92rem;
+        }
+
+        th { color: var(--text); background: rgba(255, 255, 255, 0.04); font-weight: 700; }
+        td { color: var(--muted); }
+
+        tbody tr { transition: background 0.18s ease; }
+        tbody tr:hover { background: rgba(34, 211, 238, 0.06); }
 
         .recent-links-table td {
             padding: 0.85rem 1rem;
