@@ -422,4 +422,10 @@ app.get('/analytics', protect, asyncHandler(async (req, res) => {
     });
 }));
 
+app.get('/vault', protect, asyncHandler(async (req, res) => {
+    return res.render('vault', {
+        services,
+        user: buildAccountViewModel(null, req.user),
+    });
+}));
 module.exports = app;
