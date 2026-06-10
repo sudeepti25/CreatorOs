@@ -18,7 +18,7 @@ module.exports = [
         name: '🔗 Smart Bio System',
         description: 'A smart mobile-first bio platform with branding, analytics, and custom domains.',
         route: '/services/smart-bio',
-        status: 'coming_soon',
+        status: 'available',
     },
     {
         key: 'analytics-dashboard',

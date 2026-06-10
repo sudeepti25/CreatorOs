@@ -86,10 +86,9 @@ app.get('/invites/accept/:token', acceptInvite);
 
 const Url = require('./model/url');
 
-// ── CHANGE 1: /url → /api/urls (QR routes bhi yahan se serve honge) ──────────
 app.use('/api/urls', urlRoutes);
-
 app.use("/api/analytics", protect, analyticsRoutes);
+
 const settingsRoutes = require('./routes/settings');
 app.use('/api/settings', protect, settingsRoutes);
 
@@ -97,14 +96,15 @@ const uploadDir = "/tmp";
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) { cb(null, "/tmp"); },
-    filename: function (req, file, cb) { 
-        // 100% foolproof sanitization to prevent any path traversal cross-platform
+    filename: function (req, file, cb) {
         let sanitizedFilename = path.basename(file.originalname);
         sanitizedFilename = sanitizedFilename.replace(/[/\\?%*:|"<>]/g, '-').replace(/^\.+/, '');
-        cb(null, Date.now() + '-' + sanitizedFilename); 
+        cb(null, Date.now() + '-' + sanitizedFilename);
     }
 });
 const upload = multer({ storage: storage, limits: { fileSize: 50 * 1024 * 1024 } });
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 
 function findServiceByKey(key) {
     return services.find((service) => service.key === key);
@@ -230,27 +230,33 @@ function buildAnalyticsViewModel() {
     };
 }
 
-
 function isGuestContributor(user) {
     return user?.role === 'guest_contributor';
 }
 
 function buildEmptyInviteSummary() {
-    return {
-        total: 0,
-        pending: 0,
-        accepted: 0,
-        expired: 0,
-    };
+    return { total: 0, pending: 0, accepted: 0, expired: 0 };
 }
 
+// ── ROUTES ───────────────────────────────────────────────────────────────────
+
+// Home / services hub
+app.get('/', (req, res) => {
+    res.render('services-hub', { services });
+});
+
+app.get('/services', (req, res) => {
+    res.redirect('/');
+});
+
+// Dashboard
 app.get("/dashboard", protect, asyncHandler(async (req, res) => {
     const userDoc = isGuestContributor(req.user)
         ? null
         : await User.findById(req.user.id)
             .select('name email alias bio twoFactorEnabled preferences passwordChangedAt updatedAt subscription')
             .lean();
-    
+
     const inviteSummary = isGuestContributor(req.user)
         ? buildEmptyInviteSummary()
         : await Promise.all([
@@ -276,6 +282,7 @@ app.get("/dashboard", protect, asyncHandler(async (req, res) => {
     });
 }));
 
+// Profile
 app.get("/profile", protect, asyncHandler(async (req, res) => {
     const userDoc = isGuestContributor(req.user)
         ? null
@@ -284,15 +291,86 @@ app.get("/profile", protect, asyncHandler(async (req, res) => {
     res.render("profile", { user: buildAccountViewModel(userDoc, req.user) });
 }));
 
-app.get('/', (req, res) => {
-    res.render('services-hub', { services });
-});
+// Analytics
+app.get('/analytics', protect, asyncHandler(async (req, res) => {
+    const userDoc = await User.findById(req.user.id)
+        .select('name email')
+        .lean();
 
-app.get('/services', (req, res) => {
-    res.redirect('/');
-});
+    return res.render('analytics', {
+        services,
+        user: buildAccountViewModel(userDoc, req.user),
+    });
+}));
 
-// Protected service pages
+// Vault
+app.get('/vault', protect, asyncHandler(async (req, res) => {
+    const userDoc = await User.findById(req.user.id)
+        .select('name email')
+        .lean();
+
+    return res.render('vault', {
+        services,
+        user: buildAccountViewModel(userDoc, req.user),
+    });
+}));
+
+// ── BIO LINK ROUTES ──
+
+// Editor — creator configures their bio page
+app.get('/bio', protect, asyncHandler(async (req, res) => {
+    const userDoc = await User.findById(req.user.id)
+        .select('name email alias bio')
+        .lean();
+
+    return res.render('bio-editor', {
+        services,
+        user: buildAccountViewModel(userDoc, req.user),
+    });
+}));
+
+// Save bio data
+app.post('/bio/save', protect, asyncHandler(async (req, res) => {
+    // Wire to BioProfile model later
+    return res.json({ success: true });
+}));
+
+// Track link click
+app.post('/bio/track/:linkId', asyncHandler(async (req, res) => {
+    // Wire to analytics later
+    return res.json({ tracked: true });
+}));
+
+// Public profile — anyone can visit creatoros.com/@handle
+app.get('/@:handle', asyncHandler(async (req, res) => {
+    const handle = req.params.handle;
+
+    // Replace with DB lookup when BioProfile model is ready:
+    // const bioProfile = await BioProfile.findOne({ handle }).lean();
+
+    const profile = {
+        name: 'Sudeepti Singh',
+        handle,
+        bio: 'AI/ML Enthusiast | Creator | B.Tech CS @ JUET',
+        tags: ['AI/ML', 'Creator', 'Open Source'],
+        avatarUrl: null,
+        initials: 'SS',
+        stats: { links: 6, views: '1.2K', clicks: '342' },
+    };
+
+    const links = [
+        { id: 1, type: 'instagram', icon: '📸', label: 'Instagram',  url: 'https://instagram.com/', category: 'social' },
+        { id: 2, type: 'youtube',   icon: '🎥', label: 'YouTube',    url: 'https://youtube.com/',   category: 'social' },
+        { id: 3, type: 'github',    icon: '💻', label: 'GitHub',     url: 'https://github.com/',    category: 'work'   },
+        { id: 4, type: 'linkedin',  icon: '💼', label: 'LinkedIn',   url: 'https://linkedin.com/',  category: 'work'   },
+        { id: 5, type: 'portfolio', icon: '🌐', label: 'Portfolio',  url: 'https://portfolio.dev/', category: 'work'   },
+        { id: 6, type: 'email',     icon: '📧', label: 'Contact Me', url: 'mailto:hello@example.com', category: 'other' },
+    ];
+
+    return res.render('bio-profile', { profile, links });
+}));
+
+// ── SERVICE PAGES ──
 
 app.get('/services/:serviceKey', protect, asyncHandler(async (req, res) => {
     const service = findServiceByKey(req.params.serviceKey);
@@ -306,7 +384,6 @@ app.get('/services/:serviceKey', protect, asyncHandler(async (req, res) => {
             },
         });
     }
-
 
     if (service.status !== 'available') {
         return res.render('coming-soon', { service });
@@ -337,12 +414,26 @@ app.get('/services/:serviceKey', protect, asyncHandler(async (req, res) => {
         });
     }
 
+    if (service.key === 'smart-bio') {
+        const userDoc = await User.findById(req.user.id)
+            .select('name email alias bio')
+            .lean();
+
+        return res.render('bio-editor', {
+            service,
+            services,
+            user: buildAccountViewModel(userDoc, req.user),
+        });
+    }
+
     if (service.key === 'file-upload') {
         return res.render('file-upload');
     }
 
     return res.render('coming-soon', { service });
 }));
+
+// ── URL SHORTENER POST ──
 
 const { isValidUrl } = require('./utils/validators');
 
@@ -354,18 +445,15 @@ app.post('/services/url-shortener/shorten', protect, preventContributorWrites, u
 
     try {
         const shortId = shortid();
-
-        await Url.create({
-            shortId,
-            redirectUrl,
-        });
-
+        await Url.create({ shortId, redirectUrl });
         return res.render('home', buildShortenerViewModel(req, shortId));
     } catch (err) {
         console.error('Error creating short URL:', err);
         return res.render('home', buildShortenerViewModel(req, null, 'An unexpected error occurred.'));
     }
 });
+
+// ── FILE UPLOAD POST ──
 
 app.post('/services/file-upload/upload', protect, preventContributorWrites, uploadLimiter, upload.single('file'), (req, res) => {
     if (!req.file) {
@@ -379,7 +467,8 @@ app.post('/services/file-upload/upload', protect, preventContributorWrites, uplo
     });
 });
 
-// Redirect for generated short URLs
+// ── SHORT URL REDIRECT ──
+
 app.get('/u/:shortId', asyncHandler(async (req, res) => {
     const shortId = req.params.shortId;
 
@@ -394,13 +483,14 @@ app.get('/u/:shortId', asyncHandler(async (req, res) => {
         );
 
         if (!entry) return res.status(404).send('URL not found');
-
         return res.redirect(entry.redirectUrl);
     } catch (err) {
         console.error('[redirect]', err);
         return res.status(500).send('Server error');
     }
 }));
+
+// ── ERROR HANDLER — must be last ──
 
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
@@ -411,21 +501,4 @@ if (require.main === module) {
     });
 }
 
-app.get('/analytics', protect, asyncHandler(async (req, res) => {
-    const userDoc = await User.findById(req.user.id)
-        .select('name email')
-        .lean();
-
-    return res.render('analytics', {
-        services,
-        user: buildAccountViewModel(userDoc, req.user),
-    });
-}));
-
-app.get('/vault', protect, asyncHandler(async (req, res) => {
-    return res.render('vault', {
-        services,
-        user: buildAccountViewModel(null, req.user),
-    });
-}));
 module.exports = app;
