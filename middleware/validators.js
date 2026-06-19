@@ -12,6 +12,10 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const resendVerificationSchema = z.object({
+  email: z.string().email('Invalid email format'),
+});
+
 const collaborationInviteSchema = z.object({
   email: z.string().email('Invalid email format'),
   projectName: z.string().optional(),
@@ -77,16 +81,22 @@ function validate(schema, source = 'body', viewName, buildLocals = () => ({})) {
 module.exports = { 
     signupSchema, 
     loginSchema, 
-    signupValidator: validate(signupSchema, 'body', 'signup'),
-    loginValidator: validate(loginSchema, 'body', 'login', () => ({
-        googleAuthConfigured: Boolean(process.env.GOOGLE_CLIENT_ID)
-    })),
-    validate,
+    resendVerificationSchema,
     collaborationInviteSchema,
     collaborationAcceptSchema,
     urlShortenSchema,
     urlQRColorsSchema,
     suggestionSchema,
     objectIdParamSchema,
-    shortIdParamSchema
+    shortIdParamSchema,
+    validate,
+    signupValidator: validate(signupSchema, 'body', 'signup'),
+    loginValidator: validate(loginSchema, 'body', 'login', () => ({
+        googleAuthConfigured: Boolean(process.env.GOOGLE_CLIENT_ID)
+    })),
+    resendVerificationValidator: validate(resendVerificationSchema, 'body', 'resend-verification'),
+    shortenUrlValidator: validate(urlShortenSchema, 'body'),
+    updateQrColorsValidator: validate(urlQRColorsSchema, 'body'),
+    inviteCollaboratorValidator: validate(collaborationInviteSchema, 'body'),
+    generateSuggestionValidator: validate(suggestionSchema, 'body')
 };
