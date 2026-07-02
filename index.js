@@ -22,6 +22,7 @@ if (missingVars.length > 0) {
 }
 
 const app = express();
+const { BRAND } = require('./utils/brand');
 
 const connectDB = require("./connect");
 const authRoutes = require("./routes/auth");
@@ -47,6 +48,16 @@ app.use(passport.initialize());
 
 app.set("view engine", "ejs");
 app.set('views', path.join(__dirname, 'view'));
+app.locals.BRAND = BRAND;
+
+// Content Security Policy (CSP) header - defense-in-depth against XSS
+app.use((req, res, next) => {
+    res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none';"
+    );
+    next();
+});
 
 const rateLimit = require('express-rate-limit');
 
@@ -492,21 +503,8 @@ app.get('/services/:serviceKey', protect, asyncHandler(async (req, res) => {
 
 const { isValidUrl } = require('./utils/validators');
 
-app.post('/services/url-shortener/shorten', protect, preventContributorWrites, urlShortenerLimiter, async (req, res) => {
-    const { redirectUrl } = req.body;
-    if (!redirectUrl || !isValidUrl(redirectUrl)) {
-        return res.render('home', buildShortenerViewModel(req, null, 'Please enter a valid HTTP or HTTPS URL.'));
-    }
-
-    try {
-        const shortId = shortid();
-        await Url.create({ shortId, redirectUrl });
-        return res.render('home', buildShortenerViewModel(req, shortId));
-    } catch (err) {
-        console.error('Error creating short URL:', err);
-        return res.render('home', buildShortenerViewModel(req, null, 'An unexpected error occurred.'));
-    }
-});
+const { handleGenerateShortUrlRender } = require('./controller/url');
+app.post('/services/url-shortener/shorten', protect, preventContributorWrites, urlShortenerLimiter, handleGenerateShortUrlRender);
 
 // ── FILE UPLOAD POST ──
 
@@ -514,12 +512,22 @@ app.post('/services/file-upload/upload', protect, preventContributorWrites, uplo
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }
-    return res.json({
+
+    res.json({
         filename: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype,
         path: req.file.filename,
     });
+
+    // Clean up temporary file to prevent DoS via disk exhaustion
+    try {
+        fs.unlink(req.file.path, (err) => {
+            if (err) console.error(`[upload] Failed to delete temp file ${req.file.path}:`, err);
+        });
+    } catch (e) {
+        console.error(`[upload] Error deleting temp file:`, e);
+    }
 });
 
 // ── SHORT URL REDIRECT ──
@@ -547,7 +555,7 @@ app.get('/u/:shortId', asyncHandler(async (req, res) => {
 
 // ── SITEMAP ─────────────────────────────────────────────
 app.get('/sitemap.xml', (req, res) => {
-    const baseUrl = 'https://titli-link-shortner.vercel.app';
+    const baseUrl = BRAND.siteUrl;
 
     const urls = [
         '/',
@@ -594,7 +602,12 @@ const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
 if (require.main === module) {
-    app.listen(port, () => {
+    app.listen(port, (error) => {
+        if (error) {
+            console.error(`Failed to start server on port ${port}: ${error.message}`);
+            process.exit(1);
+        }
+
         const url = process.env.APP_URL || `http://localhost:${port}`;
         console.log(`Server is running on ${url}`);
     });

@@ -18,6 +18,11 @@ const urlSchema = new mongoose.Schema({
         type: String,
         default: "Untitled Campaign",
     },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        index: true,
+    },
     totalClicks: {
         type: Number,
         default: 0,

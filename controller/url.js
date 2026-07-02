@@ -170,12 +170,28 @@ const generateBase64QR = async (text, fg, bg) => {
     });
 };
 
-// ── Render Home Page (Dashboard) ──────────────────────────────────────────────
+// ── Render Home Page (Dashboard) with Pagination ──────────────────────────────
 const handleRenderDashboard = asyncHandler(async (req, res) => {
-    const allUrls = await Url.find({}).sort({ createdAt: -1 });
-    
+    // Implement cursor-based pagination for performance
+    // Prevent loading entire collection into memory on large datasets
+    const pageSize = Math.min(parseInt(req.query.limit) || 20, 100); // Max 100 per page
+    const cursor = req.query.cursor;
+
+    const userId = req.user?.id || null;
+    const query = cursor ? { _id: { $lt: cursor }, userId } : { userId };
+    const allUrls = await Url.find(query)
+        .sort({ _id: -1 })
+        .limit(pageSize + 1)
+        .lean();
+
+    const hasNextPage = allUrls.length > pageSize;
+    const urls = allUrls.slice(0, pageSize);
+    const nextCursor = hasNextPage ? urls[urls.length - 1]?._id : null;
+
     return res.render("home", {
-        urls: allUrls,
+        urls: urls,
+        nextCursor: nextCursor,
+        hasMore: hasNextPage,
         id: null,
         shortUrl: null,
         qrCode: null,
@@ -190,12 +206,18 @@ const handleGenerateShortUrlRender = asyncHandler(async (req, res) => {
     const inputUrl = redirectUrl || url;
 
     if (!inputUrl || !isValidUrl(inputUrl)) {
-        const allUrls = await Url.find({}).sort({ createdAt: -1 });
+        // Implement cursor-based pagination to avoid loading all records
+        const pageSize = 20;
+        const allUrls = await Url.find({ userId: req.user?.id || null })
+            .sort({ _id: -1 })
+            .limit(pageSize)
+            .lean();
+
         return res.status(400).render("home", {
             urls: allUrls,
             error: "A valid HTTP or HTTPS URL is required",
-            id: null, 
-            shortUrl: null, 
+            id: null,
+            shortUrl: null,
             qrCode: null, 
             campaignName: ""
         });
@@ -216,10 +238,16 @@ const handleGenerateShortUrlRender = asyncHandler(async (req, res) => {
         qrFgColor: fgColor,
         qrBgColor: bgColor,
         qrGenerated: true,
+        userId: req.user?.id || null,
     });
 
     const qrCodeDataUrl = await generateBase64QR(shortUrl, fgColor, bgColor);
-    const allUrls = await Url.find({}).sort({ createdAt: -1 });
+    // Implement cursor-based pagination to prevent full table scans
+    const pageSize = 20;
+    const allUrls = await Url.find({ userId: req.user?.id || null })
+        .sort({ _id: -1 })
+        .limit(pageSize)
+        .lean();
 
     return res.render("home", {
         urls: allUrls,
@@ -330,6 +358,10 @@ const handleGetAnalytics = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, message: "Short URL not found", error: "Short URL not found" });
     }
 
+    if (entry.userId?.toString() !== req.user.id) {
+        return res.status(403).json({ success: false, message: "Unauthorized to view these analytics", error: "Unauthorized to view these analytics" });
+    }
+
     const qrClicks     = entry.visitHistory ? entry.visitHistory.filter((v) => v.source === "qr").length : 0;
     const directClicks = entry.visitHistory ? entry.visitHistory.filter((v) => v.source === "direct").length : 0;
 
@@ -348,6 +380,7 @@ const handleGetAnalytics = asyncHandler(async (req, res) => {
 module.exports = {
     handleRenderDashboard,
     handleGenerateShortUrl,
+    handleGenerateShortUrlRender,
     handleGetQRCode,
     handleDownloadQRCode,
     handleUpdateQRColors,

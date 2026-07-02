@@ -117,15 +117,25 @@ function createContributorToken(session) {
 
 /**
  * @function setAuthCookie
- * @description Sets the authentication JWT token as an HTTP-only cookie.
+ * @description Sets the authentication JWT token as an HTTP-only cookie with security hardening.
+ * Ensures the session cookie is protected against:
+ * - XSS attacks (httpOnly prevents JS access via document.cookie)
+ * - Man-in-the-middle attacks (secure flag prevents transmission over HTTP)
+ * - CSRF attacks (sameSite strict prevents cross-origin cookie inclusion)
  * @returns {any}
  */
 function setAuthCookie(res, token) {
+    // Determine if we should enforce HTTPS-only cookies
+    // In production, this is mandatory. In development, allow HTTP for localhost testing.
+    const isProduction = process.env.NODE_ENV === "production";
+    const isSecureEnvironment = isProduction || process.env.COOKIE_SECURE_DEV === "true";
+
     res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.COOKIE_SAME_SITE || "lax",
+        httpOnly: true, // Prevents JavaScript from accessing this cookie (XSS protection)
+        secure: isSecureEnvironment, // Only transmit over HTTPS in production/secure environments
+        sameSite: "strict", // Prevents CSRF by not including cookie in cross-origin requests
         maxAge: ONE_WEEK_MS,
+        path: "/", // Explicitly set path for clarity
     });
 }
 
@@ -238,7 +248,6 @@ const login = asyncHandler(async (req, res, next) => {
         return res.status(401).json({ success: false, message: GENERIC_LOGIN_ERROR });
     }
 
-    user.isVerified = true;
     user.lastLoginAt = new Date();
     await user.save();
 
@@ -477,6 +486,106 @@ const resendVerificationEmail = asyncHandler(async (req, res, next) => {
     });
 });
 
+/**
+ * @function requestPasswordReset
+ * @description Generates a secure password reset token and sends it via email.
+ * Token expires after 15 minutes and can only be used once.
+ */
+const requestPasswordReset = asyncHandler(async (req, res) => {
+    const User = await getUserModel();
+    const PasswordResetToken = require('../model/passwordResetToken');
+    const { email } = req.body || {};
+
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+        // Don't reveal whether email exists for security
+        return res.json({ success: true, message: 'If email exists, reset link has been sent' });
+    }
+
+    // Create password reset token (15 minute validity)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await PasswordResetToken.create({
+        userId: user._id,
+        token: resetToken,
+        expiresAt,
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent'),
+    });
+
+    // Send reset link via email
+    try {
+        const { sendPasswordResetEmail } = require('../utils/email');
+        const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+        const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
+
+        await sendPasswordResetEmail({
+            to: user.email,
+            resetLink,
+            userName: user.name,
+        });
+    } catch (emailError) {
+        console.error('Failed to send password reset email:', emailError);
+        return res.json({ success: true, message: 'If email exists, reset link has been sent. If you do not receive an email, please contact support or try again later.' });
+    }
+
+    return res.json({ success: true, message: 'If email exists, reset link has been sent. Please check your email inbox (and spam folder).' });
+});
+
+/**
+ * @function resetPassword
+ * @description Validates password reset token and updates user password.
+ * Marks token as used to prevent replay attacks.
+ */
+const resetPassword = asyncHandler(async (req, res) => {
+    const User = await getUserModel();
+    const PasswordResetToken = require('../model/passwordResetToken');
+    const { token, newPassword } = req.body || {};
+
+    if (!token || !newPassword) {
+        return res.status(400).json({ success: false, message: 'Token and password are required' });
+    }
+
+    // Find reset token
+    const resetTokenDoc = await PasswordResetToken.findOne({ token });
+    if (!resetTokenDoc) {
+        return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+    }
+
+    // Check if token is already used
+    if (resetTokenDoc.used) {
+        return res.status(400).json({ success: false, message: 'This reset token has already been used' });
+    }
+
+    // Check if token has expired
+    if (resetTokenDoc.expiresAt < new Date()) {
+        return res.status(400).json({ success: false, message: 'Reset token has expired' });
+    }
+
+    // Update user password
+    const user = await User.findById(resetTokenDoc.userId);
+    if (!user) {
+        return res.status(400).json({ success: false, message: 'User not found' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.passwordChangedAt = new Date();
+    await user.save();
+
+    // Mark token as used (single-use enforcement)
+    resetTokenDoc.used = true;
+    resetTokenDoc.usedAt = new Date();
+    await resetTokenDoc.save();
+
+    return res.json({ success: true, message: 'Password reset successfully. Please log in with your new password.' });
+});
+
 module.exports = {
     signup,
     login,
@@ -484,4 +593,6 @@ module.exports = {
     loginAsContributor,
     verifyEmail,
     resendVerificationEmail,
+    requestPasswordReset,
+    resetPassword,
 };
